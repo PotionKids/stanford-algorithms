@@ -1,4 +1,8 @@
 def trim(a):
+    if a == '0':
+        return '0'
+    if a == '':
+        return ''
     if a[0] == '0':
         return trim(a[1:])
     return a
@@ -20,7 +24,6 @@ def add_with_carry(a, b, carry):
 
 
 def subtract_with_borrow(a, b, borrow):
-    # print(f"subtract_with_borrow({a}, {b}, {borrow})")
     if len(a) == len(b) == 0:
         return ''
     if len(a) == 0:
@@ -37,27 +40,26 @@ def subtract_with_borrow(a, b, borrow):
     l = int(a[0])
     r = int(b[0])
 
-    if l < r:
-        d = 10 + l - r
-        # print(f"swb result = {str(d) + subtract_with_borrow(a[1:], b[1:], '1')}")
+    if l < r + int(borrow):
+        d = 10 + l - r - int(borrow)
         return str(d) + subtract_with_borrow(a[1:], b[1:], '1')
-    # print(f"swb result = {str(l - r) + subtract_with_borrow(a[1:], b[1:], '0')}")
-    return str(l - r) + subtract_with_borrow(a[1:], b[1:], '0')
+    return str(l - r - int(borrow)) + subtract_with_borrow(a[1:], b[1:], '0')
 
 
 def add(a, b):
-    return trim(add_with_carry(a[::-1], b[::-1], '0')[::-1])
+    a = trim(a)
+    b = trim(b)
+    return add_with_carry(a[::-1], b[::-1], '0')[::-1]
 
 
 def subtract(a, b):
-    num_a = int(a)
-    num_b = int(b)
+    num_a = int(trim(a))
+    num_b = int(trim(b))
 
     high, low, minus = (a, b, '') if num_a >= num_b else (b, a, '-')
 
     result = minus + subtract_with_borrow(high[::-1], low[::-1], '0')[::-1]
-    print(f"result = {result}")
-    return trim(result)
+    return result
 
 
 def pad_right(a, n):
@@ -81,10 +83,10 @@ def split(p):
     from math import ceil
 
     n = len(p)
-    n_by_2 = ceil(n/2)
+    n_by_2 = n//2
     list_num = list(p)
-    a = ''.join(list_num[:n_by_2])
-    b = ''.join(list_num[n_by_2:])
+    a = ''.join(list_num[:n-n_by_2])
+    b = ''.join(list_num[n-n_by_2:])
 
     return a, b, n_by_2
 
@@ -104,15 +106,10 @@ def multiply(p, q):
     p x q = ac x 10^n + (ad + bc) * 10^(n/2) + bd
     """
 
-    print(f"multiply({p}, {q})")
-
     p, q, n = normalize(p, q)
-
-    print(f"after normalizing multiply({p}, {q}) and n = {n}")
 
     if n == 1:
         prod = str(int(p)*int(q))
-        print(f"prod = {prod}")
         return prod
 
     a, b, n_by_2 = split(p)
@@ -123,12 +120,8 @@ def multiply(p, q):
     abcd = multiply(add(a, b), add(c, d))
     adbc = subtract(abcd, add(ac, bd))
 
-    # ac 21, bd 32, a+b c+d 7*15 = 105, ad + bc = 52
-
-    print(f"add({pad_right(ac, 2*n_by_2)}, {pad_right(adbc, n_by_2)}, {bd})")
     prod = add(add(pad_right(ac, 2*n_by_2), pad_right(adbc, n_by_2)), bd)
 
-    print(f"prod = {prod}")
     return prod
 
 
@@ -154,6 +147,11 @@ def test_split():
     print('test_split passed')
 
 
+def random_num_string_generator(size):
+    from random import randrange
+    return ''.join([f"{randrange(10)}" for _ in range(size)])
+
+
 def test_add_with_carry():
     assert add_with_carry('3', '5', '0') == '8'
     assert add_with_carry('32', '71', '0') == '04'
@@ -161,41 +159,48 @@ def test_add_with_carry():
     print('test_add_with_carry passed')
 
 
-def test_add():
-    # assert add('3', '5') == '8'
-    # assert add('23', '17') == '40'
-    # assert add('239', '17') == '256'
-    assert add('21', '32') == '53'
-    print('test_add passed')
+def test_func_size_num_cases(func, size_a, size_b, num_cases):
+    """
+    :param func:        function being tested
+    :param size_a:      number of digits in the first number (starting digits could be zero)
+    :param size_b:      number of digits in the second number (starting digits could be zero)
+    :param num_cases:   number of test cases
+    :return:            void
 
+    This test identifies
+    1. values that are incorrect
+    2. total number of such incorrect values
+    3. fraction (%age) of the incorrect values
+    """
+    operator = \
+        {
+            add: '+',
+            subtract: '-',
+            multiply: '*'
+        }
 
-def test_subtract():
-    # assert subtract('8', '3') == '5'
-    # assert subtract('3', '8') == '-5'
-    # assert subtract('18', '23') == '-5'
-    # assert subtract('105', add('21', '32')) == '52'
-    assert subtract('105', '53') == '52'
+    count = 0
+    for _ in range(num_cases):
+        a = random_num_string_generator(size_a)
+        b = random_num_string_generator(size_b)
 
+        prod = func(a, b)
+        value = str(eval(f"{int(a)} {operator[func]} {int(b)}"))
 
-def test_multiply():
-    # assert multiply('3', '5') == '15'
-    # assert multiply('12', '5') == '60'
-    # assert multiply('12', '56') == '672'
-    # assert multiply('34', '78') == '2652'
-    # ac 21, bd 32, a+b c+d 7*15 = 105, ad + bc = 52
-    assert multiply('1234', '5678') == '7006652'
-    # ac 672, bd 2652, a+b c+d 68*112 = 7616, ad + bc = 4292
+        if prod[0] == '-':
+            assert(prod[0] == value[0])
+            prod = prod[1:]
+            value = value[1:]
+
+        diff = zip(prod, value)
+        diff_string = ''.join([str(int(u) - int(v)) for u, v in diff])
+
+        if int(prod) != int(value):
+            count += 1
+            print(f"prod = {prod} = {a} {operator[func]} {b} is not the correct value = {value} difference = {diff_string}")
+
+    print(f"Total of {count} values were wrong which is {count * 100 / num_cases}%")
 
 
 if __name__ == '__main__':
-    # test_pad_left()
-    # test_pad_right()
-    # test_normalize()
-    # test_split()
-    # test_add_with_carry()
-    # test_add()
-    # test_subtract()
-    test_multiply()
-    # a = subtract_with_borrow('', '', '0')
-    # b = subtract_with_borrow('1', '', '1')
-    # print(f"a = {a}, b = {b}")
+    test_func_size_num_cases(multiply, 100, 97, 100)
