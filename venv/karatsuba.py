@@ -47,12 +47,34 @@ def subtract_with_borrow(a, b, borrow):
 
 
 def add(a, b):
+    """
+    :param a: first number to be added
+    :param b: second number to be added
+    :return:  sum of the two numbers
+
+    The function trims the numbers reverses them according to the
+    Reverse Polish notation for easier computation and iteration
+    and passes them to the recursive function add_with_carry.
+
+    Trimming is necessary as the normalization process creates leading zeros
+    """
     a = trim(a)
     b = trim(b)
     return add_with_carry(a[::-1], b[::-1], '0')[::-1]
 
 
 def subtract(a, b):
+    """
+    :param a: first number to be added
+    :param b: second number to be added
+    :return:  difference of the two numbers
+
+    The function trims the numbers reverses them according to the
+    Reverse Polish notation for easier computation and iteration
+    and passes them to the recursive function subtract_with_borrow.
+
+    Trimming is necessary as the normalization process creates leading zeros
+    """
     num_a = int(trim(a))
     num_b = int(trim(b))
 
