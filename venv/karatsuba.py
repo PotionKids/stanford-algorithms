@@ -171,7 +171,7 @@ def test_split():
 
 def random_num_string_generator(size):
     from random import randrange
-    return ''.join([f"{randrange(10)}" for _ in range(size)])
+    return f"{randrange(1, 10)}" + ''.join([f"{randrange(10)}" for _ in range(1, size)])
 
 
 def test_add_with_carry():
@@ -219,7 +219,6 @@ def test_func_size_num_cases(func, size_a, size_b, num_cases):
 
         if int(prod) != int(value):
             count += 1
-            # print(f"prod = {prod} = {a} {operator[func]} {b} is not the correct value = {value} difference = {diff_string}")
 
     print(f"Total of {count} values were wrong which is {count * 100 / num_cases}%")
 
@@ -231,24 +230,29 @@ def test_multiply_size_num_cases(size, num_cases):
 def performance():
     from time import time
 
-    start_size = 100
-    max_size = 1000
-    num_cases = 25
+    start_size = 1
+    max_size = 496
+    num_cases = 50
 
-    sizes = [n for n in range(start_size, max_size + 1)]
+    # sizes = [n for n in range(start_size, max_size + 1)]
+    sizes = list()
     times = list()
 
-    for size in sizes:
+    for size in range(start_size, max_size + 1):
         print(f"size = {size}")
         start = time()
-        test_multiply_size_num_cases(size, num_cases)
+        try:
+            test_multiply_size_num_cases(size, num_cases)
+        except RecursionError:
+            break
         end = time()
+        sizes.append(size)
         times.append((end - start)/num_cases)
 
     return sizes, times
 
 
-def plot(n=[1, 2, 3], t=[2, 4, 1]):
+def plot(n, t):
     from matplotlib import pyplot as plt
 
     # plotting the points
