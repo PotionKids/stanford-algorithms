@@ -219,10 +219,54 @@ def test_func_size_num_cases(func, size_a, size_b, num_cases):
 
         if int(prod) != int(value):
             count += 1
-            print(f"prod = {prod} = {a} {operator[func]} {b} is not the correct value = {value} difference = {diff_string}")
+            # print(f"prod = {prod} = {a} {operator[func]} {b} is not the correct value = {value} difference = {diff_string}")
 
     print(f"Total of {count} values were wrong which is {count * 100 / num_cases}%")
 
 
+def test_multiply_size_num_cases(size, num_cases):
+    test_func_size_num_cases(multiply, size, size, num_cases)
+
+
+def performance():
+    from time import time
+
+    start_size = 100
+    max_size = 1000
+    num_cases = 25
+
+    sizes = [n for n in range(start_size, max_size + 1)]
+    times = list()
+
+    for size in sizes:
+        print(f"size = {size}")
+        start = time()
+        test_multiply_size_num_cases(size, num_cases)
+        end = time()
+        times.append((end - start)/num_cases)
+
+    return sizes, times
+
+
+def plot(n=[1, 2, 3], t=[2, 4, 1]):
+    from matplotlib import pyplot as plt
+
+    # plotting the points
+    plt.plot(n, t)
+
+    # naming the x axis
+    plt.xlabel('input size (n)')
+    # naming the y axis
+    plt.ylabel('run time')
+
+    # giving a title to my graph
+    plt.title('time complexity')
+
+    # function to show the plot
+    plt.show()
+
+
 if __name__ == '__main__':
-    test_func_size_num_cases(multiply, 100, 97, 100)
+    # test_func_size_num_cases(multiply, 100, 97, 100)
+    sizes, times = performance()
+    plot(sizes, times)
