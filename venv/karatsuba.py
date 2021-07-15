@@ -227,50 +227,9 @@ def test_multiply_size_num_cases(size, num_cases):
     test_func_size_num_cases(multiply, size, size, num_cases)
 
 
-def performance():
-    from time import time
-
-    start_size = 1
-    max_size = 496
-    num_cases = 50
-
-    # sizes = [n for n in range(start_size, max_size + 1)]
-    sizes = list()
-    times = list()
-
-    for size in range(start_size, max_size + 1):
-        print(f"size = {size}")
-        start = time()
-        try:
-            test_multiply_size_num_cases(size, num_cases)
-        except RecursionError:
-            break
-        end = time()
-        sizes.append(size)
-        times.append((end - start)/num_cases)
-
-    return sizes, times
-
-
-def plot(n, t):
-    from matplotlib import pyplot as plt
-
-    # plotting the points
-    plt.plot(n, t)
-
-    # naming the x axis
-    plt.xlabel('input size (n)')
-    # naming the y axis
-    plt.ylabel('run time')
-
-    # giving a title to my graph
-    plt.title('time complexity')
-
-    # function to show the plot
-    plt.show()
-
-
 if __name__ == '__main__':
-    # test_func_size_num_cases(multiply, 100, 97, 100)
-    sizes, times = performance()
+    from plot import plot
+    from performance import performance
+
+    sizes, times = performance(test_multiply_size_num_cases, 30, 50)
     plot(sizes, times)
