@@ -1,15 +1,14 @@
 from random_array import gen_random_array
 
 
-def test_merge_sort_size_num_cases(max_size, num_cases):
-    for size in range(1, max_size):
-        for _ in range(num_cases):
-            test_merge_sort_size(size)
+def test_merge_sort_size_num_cases(size, num_cases):
+    for _ in range(num_cases):
+        test_merge_sort_size(size)
 
 
 def test_merge_sort_size(size):
     arr = gen_random_array(size)
-    assert merge_sort(arr) == sorted(arr)
+    arr = merge_sort(arr)
 
 
 def test_merge_sort():
@@ -66,5 +65,5 @@ if __name__ == '__main__':
     from plot import plot
     import math
 
-    sizes, times = performance(test_merge_sort_size_num_cases, 10, 50)
-    plot(sizes, times, lambda x: 1.2*1e-6*(x**2))
+    sizes, times = performance(test_merge_sort_size_num_cases, 1000, 100)
+    plot(sizes, times, loglog=True)

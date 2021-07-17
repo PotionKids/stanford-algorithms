@@ -1,15 +1,25 @@
-def plot(n, t, loglog=False, interpolation=lambda x: 1.2 * 1e-6 * (x ** 2)):
+def plot(n, t, loglog=False, interpolation=lambda x: x ** 2):
     from matplotlib import pyplot as plt
     from math import log2
 
-    interpolated = list(map(interpolation, n))
-    linear = list(map(lambda x: 1.2 * 1e-6 * x, n))
-    logLinear = list(map(lambda x: 1.2 * 1e-6 * x * log2(x), n))
+    quadratic = list(map(lambda x: x**2, n))
+    cq = quadratic[0]
+    quadratic = list(map(lambda x: x/cq, quadratic))
+    linear = list(map(lambda x: x, n))
+    cl = linear[0]
+    linear = list(map(lambda x: x/cl, linear))
+    # logLinear = list(map(lambda x: x * log2(x), n))
+    # cll = logLinear[0]
+    # logLinear = list(map(lambda x: x/cll, logLinear))
+    karatsuba = list(map(lambda x: x**1.59, n))
+    ck = karatsuba[0]
+    karatsuba = list(map(lambda x: x/ck, karatsuba))
     # plotting the points
     plt.plot(n, t, color='k', label='actual')
-    plt.plot(n, interpolated, color='r', label='quadratic')
+    plt.plot(n, quadratic, color='r', label='quadratic')
     plt.plot(n, linear, color='b', label='linear')
-    plt.plot(n, logLinear, color='g', label='log linear')
+    # plt.plot(n, logLinear, color='g', label='log linear')
+    plt.plot(n, karatsuba, color='g', label='karatsuba')
     plt.legend()
 
     if loglog:

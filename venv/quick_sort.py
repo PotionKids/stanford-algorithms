@@ -14,7 +14,7 @@ def test_pivot_sort_arr(arr, start, pivot, stop):
 
 
 def test_quick_sort_max_size_num_cases(max_size, num_cases):
-    for size in range(1, max_size + 1):
+    for size in range(max_size, max_size + 1):
         test_quick_sort_size_num_cases(size, num_cases)
 
 
@@ -22,9 +22,8 @@ def test_quick_sort_size_num_cases(size, num_cases):
     from random_array import gen_random_array
 
     for _ in range(num_cases):
-        arr = gen_random_array(size, unique=True, abs_max=100)
+        arr = gen_random_array(size, unique=True, abs_max=10000)
         quick_sort(arr)
-        assert arr == sorted(arr)
 
 
 def test_uniqueness(arr):
@@ -37,7 +36,6 @@ def test_uniqueness(arr):
 
 
 def pivot_sort(arr, pivot, start, stop):
-
     l, r = start, stop
 
     while l < r:
@@ -79,5 +77,5 @@ if __name__ == '__main__':
     from plot import plot
     import math
 
-    sizes, times = performance(test_quick_sort_max_size_num_cases, 200, 10)
+    sizes, times = performance(test_quick_sort_size_num_cases, 1000, 50)
     plot(sizes, times, loglog=True)

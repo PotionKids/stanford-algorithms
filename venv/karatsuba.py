@@ -188,39 +188,13 @@ def test_func_size_num_cases(func, size_a, size_b, num_cases):
     :param size_b:      number of digits in the second number (starting digits could be zero)
     :param num_cases:   number of test cases
     :return:            void
-
-    This test identifies
-    1. values that are incorrect
-    2. total number of such incorrect values
-    3. fraction (%age) of the incorrect values
     """
-    operator = \
-        {
-            add: '+',
-            subtract: '-',
-            multiply: '*'
-        }
 
-    count = 0
     for _ in range(num_cases):
         a = random_num_string_generator(size_a)
         b = random_num_string_generator(size_b)
 
         prod = func(a, b)
-        value = str(eval(f"{int(a)} {operator[func]} {int(b)}"))
-
-        if prod[0] == '-':
-            assert(prod[0] == value[0])
-            prod = prod[1:]
-            value = value[1:]
-
-        diff = zip(prod, value)
-        diff_string = ''.join([str(int(u) - int(v)) for u, v in diff])
-
-        if int(prod) != int(value):
-            count += 1
-
-    print(f"Total of {count} values were wrong which is {count * 100 / num_cases}%")
 
 
 def test_multiply_size_num_cases(size, num_cases):
@@ -231,5 +205,5 @@ if __name__ == '__main__':
     from plot import plot
     from performance import performance
 
-    sizes, times = performance(test_multiply_size_num_cases, 30, 50)
-    plot(sizes, times)
+    sizes, times = performance(test_multiply_size_num_cases, 300, 10)
+    plot(sizes, times, loglog=True)
