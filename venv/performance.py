@@ -1,5 +1,6 @@
 def performance(func, max_size, num_cases, *args, **kwargs):
     from time import time
+    import numpy as np
 
     start_size = 10
 
@@ -19,4 +20,7 @@ def performance(func, max_size, num_cases, *args, **kwargs):
         times.append((end - start)/num_cases)
 
     times = list(map(lambda x: x / (times[0]), times))
+
+    sizes = np.array(sizes)
+    times = np.array(times)
     return sizes, times

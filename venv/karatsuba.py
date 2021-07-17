@@ -205,5 +205,5 @@ if __name__ == '__main__':
     from plot import plot
     from performance import performance
 
-    sizes, times = performance(test_multiply_size_num_cases, 300, 10)
+    sizes, times = performance(test_multiply_size_num_cases, 30, 10)
     plot(sizes, times, loglog=True)
