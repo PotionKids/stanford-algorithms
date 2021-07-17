@@ -1,10 +1,4 @@
-def gen_random_array(size):
-    from random import randrange
-
-    max_int = 1000
-    min_int = -max_int
-
-    return [randrange(min_int, max_int) for _ in range(size)]
+from random_array import gen_random_array
 
 
 def test_merge_sort_size_num_cases(max_size, num_cases):
@@ -72,5 +66,5 @@ if __name__ == '__main__':
     from plot import plot
     import math
 
-    sizes, times = performance(test_merge_sort_size_num_cases, 200, 50)
+    sizes, times = performance(test_merge_sort_size_num_cases, 10, 50)
     plot(sizes, times, lambda x: 1.2*1e-6*(x**2))
