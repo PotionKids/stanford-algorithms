@@ -202,8 +202,12 @@ def test_multiply_size_num_cases(size, num_cases):
 
 
 if __name__ == '__main__':
-    from plot import plot
-    from performance import performance
-
-    sizes, times = performance(test_multiply_size_num_cases, 30, 10)
-    plot(sizes, times, loglog=True)
+    a = '3141592653589793238462643383279502884197169399375105820974944592'
+    b = '2718281828459045235360287471352662497757247093699959574966967627'
+    c = multiply(a, b)
+    print(c)
+    # from plot import plot
+    # from performance import performance
+    #
+    # sizes, times = performance(test_multiply_size_num_cases, 30, 10)
+    # plot(sizes, times, loglog=True)
