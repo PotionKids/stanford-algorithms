@@ -10,9 +10,7 @@ class Graph:
     def add_neighbors(vertex_a, vertex_b):
         result = vertex_a
         for neighbor, num_edges in vertex_b.items():
-            if neighbor in result:
-                result[neighbor] += num_edges
-            result[neighbor] = num_edges
+            result[neighbor] = result.get(neighbor, 0) + num_edges
         return result
 
     def collapse_edge(self, vertex_a, vertex_b):
@@ -22,7 +20,7 @@ class Graph:
                 self.graph[neighbor][vertex_a] = \
                     self.graph[neighbor].get(vertex_a, 0) +\
                     self.graph[neighbor][vertex_b]
-                self.graph[neighbor].pop(vertex_b)
+                self.graph[neighbor].pop(vertex_b, None)
 
         self.graph[vertex_b].pop(vertex_b, None)
         self.graph[vertex_b].pop(vertex_a, None)
@@ -51,21 +49,14 @@ def create_graph_from(filename):
 
 # noinspection PyShadowingNames
 def select_edge(graph):
+    vertices = graph.vertices
     head = random.choice(graph.vertices)
     tail = random.choice(list(graph.graph[head].keys()))
-    print(f"head = {head}, tail = {tail}")
-    try:
-        assert head in graph.vertices
-        assert tail in graph.vertices
-    except AssertionError:
-        print('assertion error')
-        print(f"missing head = {head}, tail = {tail}")
-        pprint.pp(graph.graph)
     return head, tail
 
 
 # noinspection PyShadowingNames
-def karger_min_cut(graph):
+def karger_cut(graph):
     if len(graph.vertices) < 3:
         return graph
 
@@ -76,13 +67,49 @@ def karger_min_cut(graph):
     return graph
 
 
+# noinspection PyShadowingNames
+def karger_min_cut(filename, max_iterations=10000000):
+    min_cut = 10000
+    iterations = 0
+    # count = 0
+
+    while iterations < max_iterations:
+        graph = Graph(filename)
+        reduced = karger_cut(graph)
+        cut = 0
+        head, tail = tuple(reduced.graph.keys())
+        cut = reduced.graph[head][tail]
+        if cut < min_cut:
+            min_cut = cut
+            print(f"min_cut = {min_cut}")
+        iterations += 1
+        if iterations % 1000 == 0:
+            print(f"iteration number = {iterations}, min_cut = {min_cut}, cut = {cut}")
+
+    print(f"min_cut = {min_cut}")
+    return min_cut, reduced
+
+
 if __name__ == '__main__':
     import pprint
 
+    # graph = Graph('Problem_Set_4_Karger_Min_Cut_dummy.txt')
     graph = Graph('Problem_Set_4_Karger_Min_Cut.txt')
+    min_vertices = 10000
+    max_vertices = 0
+    total = 0
+    for vertex, neighbors in graph.graph.items():
+        total += len(neighbors)
+        if len(neighbors) < min_vertices:
+            min_vertices = len(neighbors)
+        if len(neighbors) > max_vertices:
+            max_vertices = len(neighbors)
+
+    total = total / 2
     # graph = Graph('Problem_Set_4_Karger_Min_Cut_dummy.txt')
 
     pprint.pp(graph.graph)
-    reduced = karger_min_cut(graph)
-    pprint.pp(reduced.graph)
-    print(reduced.vertices)
+    # min_cut, reduced = karger_min_cut('Problem_Set_4_Karger_Min_Cut.txt')
+    # min_cut, reduced = karger_min_cut('Problem_Set_4_Karger_Min_Cut_dummy.txt')
+    # pprint.pp(reduced.graph)
+    # print(f"min = {min_vertices}, max = {max_vertices}, total = {total}")
