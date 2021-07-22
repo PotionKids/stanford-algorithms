@@ -38,7 +38,7 @@ def sort_and_count_inversions(arr):
 
 
 if __name__ == '__main__':
-    arr_file = open('Problem_Set_2_IntegerArray.txt', 'r')
+    arr_file = open('problem_set_2_merge_sort_and_count_inversions.txt', 'r')
     arr = [int(line.strip()) for line in arr_file.readlines()]
     sorted_arr, inversions = sort_and_count_inversions(arr)
     print(inversions)

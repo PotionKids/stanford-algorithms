@@ -111,5 +111,5 @@ def karger_min_cut(g, max_it=1000000):
 
 
 if __name__ == '__main__':
-    g = Graph('Problem_Set_4_Karger_Min_Cut.txt')
+    g = Graph('problem_set_4_karger_min_cut.txt')
     min_cut, contracted = karger_min_cut(g, g.num_vertices()**2)

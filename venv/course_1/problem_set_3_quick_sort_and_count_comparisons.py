@@ -1,6 +1,7 @@
 from random import randrange
 
 
+# noinspection PyShadowingNames
 def test_pivot_sort_arr(arr, start, pivot, stop):
     for index in range(start, pivot):
         if arr[index] > arr[pivot]:
@@ -18,6 +19,7 @@ def test_quick_sort_max_size_num_cases(max_size, num_cases):
         test_quick_sort_size_num_cases(size, num_cases)
 
 
+# noinspection PyShadowingNames
 def test_quick_sort_size_num_cases(size, num_cases):
     from random_array import gen_random_array
 
@@ -26,6 +28,7 @@ def test_quick_sort_size_num_cases(size, num_cases):
         quick_sort(arr)
 
 
+# noinspection PyShadowingNames
 def test_uniqueness(arr):
     seen = set()
     for num in arr:
@@ -35,6 +38,7 @@ def test_uniqueness(arr):
     return True
 
 
+# noinspection PyShadowingNames
 def pivot_sort(arr, pivot, start, stop):
     l, r = start, stop
 
@@ -65,6 +69,7 @@ def pivot_sort_stanford(arr, pivot, start, stop):
     return l - 1
 
 
+# noinspection PyShadowingNames
 def pivot_strategy(arr, start, stop, strategy):
     if strategy == 1:
         return start
@@ -83,24 +88,16 @@ def pivot_strategy(arr, start, stop, strategy):
         return randrange(start, stop + 1)
 
 
-abc = list()
-pivots = list()
-
-
+# noinspection PyShadowingNames
 def quick_sort_and_count_recursive(arr, start, stop, count):
     if stop <= start:
-        abc.append(stop - start)
-        pivots.append(-1)
         return 0
-
-    abc.append(stop - start)
 
     strategy = 1
     rand_pivot = pivot_strategy(arr, start, stop, strategy)
     arr[start], arr[rand_pivot] = arr[rand_pivot], arr[start]
 
     pivot = pivot_sort_stanford(arr, start, start + 1, stop)
-    pivots.append(pivot)
     arr[start], arr[pivot] = arr[pivot], arr[start]
 
     quick_sort_and_count_recursive(arr, start, pivot - 1, count)
@@ -109,6 +106,7 @@ def quick_sort_and_count_recursive(arr, start, stop, count):
     count[0] += stop - start
 
 
+# noinspection PyShadowingNames
 def quick_sort_and_count(arr):
     count = [0]
     quick_sort_and_count_recursive(arr, 0, len(arr) - 1, count)
@@ -116,7 +114,7 @@ def quick_sort_and_count(arr):
 
 
 if __name__ == '__main__':
-    arr_file = open('Problem_Set_3_Quick_Sort_Array.txt', 'r')
+    arr_file = open('problem_set_3_quick_sort_and_count_comparisons.txt', 'r')
     arr = [int(line.strip()) for line in arr_file.readlines()]
     comparisons = quick_sort_and_count(arr)
     print(comparisons[0])
