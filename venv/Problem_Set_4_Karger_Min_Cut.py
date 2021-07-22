@@ -1,4 +1,4 @@
-import random
+from random import choice as pick
 
 
 class Graph:
@@ -6,110 +6,110 @@ class Graph:
         self.graph = create_graph_from(filename)
         self.vertices = list(self.graph.keys())
 
-    @staticmethod
-    def add_neighbors(vertex_a, vertex_b):
-        result = vertex_a
-        for neighbor, num_edges in vertex_b.items():
-            result[neighbor] = result.get(neighbor, 0) + num_edges
-        return result
+    def num_vertices(self):
+        return len(self.vertices)
 
-    def collapse_edge(self, vertex_a, vertex_b):
-        neighbors_of_b = self.graph[vertex_b]
-        for neighbor in neighbors_of_b:
-            if neighbor != vertex_a:
-                self.graph[neighbor][vertex_a] = \
-                    self.graph[neighbor].get(vertex_a, 0) +\
-                    self.graph[neighbor][vertex_b]
-                self.graph[neighbor].pop(vertex_b, None)
+    def adj(self, a):
+        return self.graph[a]
 
-        self.graph[vertex_b].pop(vertex_b, None)
-        self.graph[vertex_b].pop(vertex_a, None)
-        self.graph[vertex_a] = Graph.add_neighbors(self.graph[vertex_a], self.graph[vertex_b])
-        self.graph[vertex_a].pop(vertex_b, None)
-        self.graph[vertex_a].pop(vertex_a, None)
-        self.graph.pop(vertex_b, None)
-        self.vertices.remove(vertex_b)
+    def adj_list(self, a):
+        return list(self.adj(a).keys())
+
+    def adjs(self, a, b):
+        return self.adj(a), self.adj(b)
+
+    def order(self, a):
+        adj_a = self.adj(a)
+        return sum(adj_a[b] for b in adj_a)
+
+    def min_order(self):
+        return min(self.order(a) for a in self.vertices)
+
+    def max_order(self):
+        return max(self.order(a) for a in self.vertices)
+
+    def num_edges(self):
+        return sum(self.order(a) for a in self.vertices) // 2
+
+    def min_order_vertices(self):
+        min = self.min_order()
+        return list(filter(lambda x: self.order(x) == min, self.vertices))
+
+    def max_order_vertices(self):
+        max = self.max_order()
+        return list(filter(lambda a: self.order(a) == max, self.vertices))
+
+    def clean(self, a, b):
+        adj_a, adj_b = self.adjs(a, b)
+        adj_b.pop(b, None)
+        adj_b.pop(a, None)
+        adj_a.pop(b, None)
+        adj_a.pop(a, None)
+
+    def remove(self, a):
+        self.graph.pop(a, None)
+        self.vertices.remove(a)
+
+    def cut(self):
+        head, tail = tuple(self.graph.keys())
+        return self.graph[head][tail]
+
+    def append_neighbors(self, a, b):
+        adj_a, adj_b = self.adjs(a, b)
+
+        for n in adj_b:
+            if n != a:
+                adj_n = self.adj(n)
+                adj_n[a] = adj_n.get(a, 0) + adj_n[b]
+                adj_a[n] = adj_n[a]
+                adj_n.pop(b, None)
+
+    def contract(self, a, b):
+        self.append_neighbors(a, b)
+        self.clean(a, b)
+        self.remove(b)
 
 
 # noinspection PyShadowingNames
 def create_graph_from(filename):
-    with open(filename, "r") as file:
-        adjacency_list = [list(map(lambda x: int(x), line.strip().split())) for line in file.readlines()]
+    with open(filename, "r") as f:
+        adj_list = [list(map(lambda x: int(x), l.strip().split())) for l in f.readlines()]
 
     graph = dict()
-
-    for vertices in adjacency_list:
-        start = vertices[0]
-        neighbors_list = vertices[1:]
-        neighbors_dict = {vertex: neighbors_list.count(vertex) for vertex in neighbors_list}
-        graph[start] = neighbors_dict
-
+    for vertices in adj_list:
+        vertex, neighbors = vertices[0], vertices[1:]
+        neighbors_dict = {v: neighbors.count(v) for v in neighbors}
+        graph[vertex] = neighbors_dict
     return graph
 
 
 # noinspection PyShadowingNames
-def select_edge(graph):
-    vertices = graph.vertices
-    head = random.choice(graph.vertices)
-    tail = random.choice(list(graph.graph[head].keys()))
+def select_edge(g):
+    head = pick(g.vertices)
+    tail = pick(g.adj_list(head))
     return head, tail
 
 
 # noinspection PyShadowingNames
-def karger_cut(graph):
-    if len(graph.vertices) < 3:
-        return graph
-
-    while len(graph.vertices) > 2:
-        head, tail = select_edge(graph)
-        graph.collapse_edge(head, tail)
-
-    return graph
+def karger_cut(g):
+    while g.num_vertices() > 2:
+        a, b = select_edge(g)
+        g.contract(a, b)
+    return g
 
 
 # noinspection PyShadowingNames
-def karger_min_cut(filename, max_iterations=10000000):
-    min_cut = 10000
-    iterations = 0
-    # count = 0
+def karger_min_cut(g, max_it=1000000):
+    from copy import deepcopy as dc
 
-    while iterations < max_iterations:
-        graph = Graph(filename)
-        reduced = karger_cut(graph)
-        cut = 0
-        head, tail = tuple(reduced.graph.keys())
-        cut = reduced.graph[head][tail]
-        if cut < min_cut:
-            min_cut = cut
-            print(f"min_cut = {min_cut}")
-        iterations += 1
-        if iterations % 1000 == 0:
-            print(f"iteration number = {iterations}, min_cut = {min_cut}, cut = {cut}")
-
-    print(f"min_cut = {min_cut}")
-    return min_cut, reduced
+    min, it = g.max_order(), 0
+    while it < max_it:
+        cut = karger_cut(dc(g)).cut()
+        min = cut if cut < min else min
+        it += 1
+    return min
 
 
 if __name__ == '__main__':
-    import pprint
-
-    # graph = Graph('Problem_Set_4_Karger_Min_Cut_dummy.txt')
-    graph = Graph('Problem_Set_4_Karger_Min_Cut.txt')
-    min_vertices = 10000
-    max_vertices = 0
-    total = 0
-    for vertex, neighbors in graph.graph.items():
-        total += len(neighbors)
-        if len(neighbors) < min_vertices:
-            min_vertices = len(neighbors)
-        if len(neighbors) > max_vertices:
-            max_vertices = len(neighbors)
-
-    total = total / 2
-    # graph = Graph('Problem_Set_4_Karger_Min_Cut_dummy.txt')
-
-    pprint.pp(graph.graph)
-    # min_cut, reduced = karger_min_cut('Problem_Set_4_Karger_Min_Cut.txt')
-    # min_cut, reduced = karger_min_cut('Problem_Set_4_Karger_Min_Cut_dummy.txt')
-    # pprint.pp(reduced.graph)
-    # print(f"min = {min_vertices}, max = {max_vertices}, total = {total}")
+    g = Graph('Problem_Set_4_Karger_Min_Cut.txt')
+    min_cut, contracted = karger_min_cut(g, g.num_vertices()**2)
