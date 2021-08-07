@@ -12,16 +12,20 @@ class Queue:
     def size(self):
         return len(self.items)
 
-    def is_empty(self):
+    def empty(self):
         return self.size() == 0
 
-    def is_not_empty(self):
+    def not_empty(self):
         return not self.is_empty()
 
-    def enqueue(self, value):
+    def enq(self, value):
         self.items.append(value)
 
-    def dequeue(self):
+    def enq_list(self, values):
+        for value in values:
+            self.enq(value)
+
+    def deq(self):
         if self.is_empty():
             return None
         return self.items.popleft()
