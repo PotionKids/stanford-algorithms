@@ -43,7 +43,7 @@ from constants import pp
 
 
 class Pair:
-    def __init__(self, key='z', val=100):
+    def __init__(self, key='z', val=10):
         self.key = key
         self.val = val
 
@@ -87,14 +87,10 @@ class Node:
 class Heap:
     def __init__(self, pairs=None, min=True):
         self.min = min
-        if not pairs:
-            self.pairs = []
-            self.map = {}
-        else:
-            self.pairs = pairs
-            print(f'self.pairs = {self.pairs}')
-            self.map = {pair.key: index for index, pair in enumerate(self.pairs)}
-            pp(self.map)
+        self.pairs = pairs if pairs is not None else []
+        self.map = {
+                    pair.key: index for index, pair in enumerate(self.pairs)
+                   } if pairs is not None else {}
         self.heapify()
 
     def __len__(self):
@@ -106,28 +102,63 @@ class Heap:
     def size(self):
         return len(self.pairs)
 
+
+    def index(self, key):
+        return self.map.get(key, None)
+
+    def last_index(self):
+        return self.size() - 1
+
+    def last(self):
+        return self.pairs[self.last_index()]
+
+    def last_key(self):
+        return self.last().key
+
+
     def valid_index(self, index):
         return 0 <= index < self.size()
 
-    def heapify(self):
-        for key, _ in map(Pair.key_val, reversed(self.pairs)):
-            print(f'key in heapify = {key}')
-            self.trickle_down(self.parent(key))
+    def left_index(self, index):
+        left = (index + 1) * 2 - 1
+        return left if left < self.size() else -1
+
+    def right_index(self, index):
+        right = (index + 1) * 2
+        return right if right < self.size() else -1
+
+    def left_val(self, key):
+        return self.value(self.left_child(key))
+
+    def right_val(self, key):
+        return self.value(self.right_child(key))
+
+
+    def value(self, key):
+        if key is None:
+            return None
+        return self.pair(key).val
+
 
     def parent(self, key):
         index = self.index(key)
-        print(f'index in parent = {index}')
-        print(self.key((index + 1)//2 - 1))
         return self.key((index + 1)//2 - 1) if index else None
 
+    def left_child(self, key):
+        return self.key(self.left_index(self.index(key)))
+
+    def right_child(self, key):
+        return self.key(self.right_index(self.index(key)))
+
+
+    def heapify(self):
+        for key, _ in map(Pair.key_val, reversed(self.pairs)):
+            self.trickle_down(key)
+
     def trickle_down(self, key):
-        print(f'trickle down key = {key}')
-        print(f'self.pairs = {self.pairs}')
-        pp(self.map)
         if key is None:
             return
         while not self.valid_down(key):
-            print(f'self.valid_down is {self.valid_down(key)}')
             self.drop(key)
 
     def drop(self, key):
@@ -135,38 +166,80 @@ class Heap:
 
     def swap_child(self, key):
         left, right = self.invalid_children(key)
-        print(f'invalid children: left = {left}, right = {right}')
-        if not left and not right:
+        if left is None and right is None:
             return
-        elif not left:
+        elif left is None:
             self.swap_keys(key, right)
-        elif not right:
+        elif right is None:
             self.swap_keys(key, left)
         else:
             self.swap_keys(key, self.preferred(left, right))
 
+    def comp(self, key_l, key_r):
+        if key_l is None or key_r is None:
+            return True
+        val_l, val_r = self.value(key_l), self.value(key_r)
+        return val_l <= val_r if self.min else val_l >= val_r
+
+    def valid_up(self, key):
+        return self.comp(self.parent(key), key)
+
+    def valid_down(self, key):
+        left, right = self.left_child(key), self.right_child(key)
+        return self.comp(key, left) and self.comp(key, right)
+
+    def invalid_children(self, key):
+        left, right = self.left_child(key), self.right_child(key)
+        left = None if self.comp(key, left) else left
+        right = None if self.comp(key, right) else right
+        return left, right
+
+    def preferred(self, l, r):
+        select, _ = (l, r) if self.comp(l, r) else (r, l)
+        return select
+
+    def bubble_up(self, key):
+        while not self.valid_up(key):
+            self.lift(key)
+
     def lift(self, key):
         parent = self.parent(key)
-        if not parent:
+        if parent is None:
             return
         ind, par = self.index(key), self.index(parent)
         self.swap(ind, par)
 
-    def last(self):
-        print(f'self.size = {self.size}')
-        return self.size() - 1
+
 
     def append(self, pair):
         self.pairs.append(pair)
-        self.map[pair.key] = self.last()
+        self.map[pair.key] = self.last_index()
         return pair.key
 
     def insert(self, pair):
         key = self.append(pair)
         self.bubble_up(key)
 
-    def index(self, key):
-        return self.map[key]
+    def pop(self):
+        last = self.pairs.pop()
+        self.map.pop(last.key)
+
+    def delete(self, key):
+        if self.index(key) is None:
+            print(f'key = {key} not found')
+            return
+        last_key = self.last_key()
+        self.swap_keys(key, last_key)
+        self.pop()
+        self.trickle_down(last_key)
+
+    def update(self, key, val):
+        index = self.index(key)
+        if index is None:
+            print(f'key = {key} not found')
+            return
+        self.delete(key)
+        self.insert(Pair(key, val))
 
     def extend(self, pairs):
         for pair in pairs:
@@ -191,54 +264,12 @@ class Heap:
         self.swap(self.index(k), self.index(l))
 
     def pair(self, key):
+        if key is None:
+            return None
         return self.pairs[self.index(key)]
 
     def pair_index(self, index):
         return self.pairs[index] if 0 <= index < self.size() else None
-
-    def value(self, key):
-        return self.pair(key).val
-
-    def comp(self, key_l, key_r):
-        if not key_l or not key_r:
-            return True
-        val_l, val_r = self.value(key_l), self.value(key_r)
-        return val_l <= val_r if self.min else val_l >= val_r
-
-    def left_index(self, index):
-        left = (index + 1) * 2 - 1
-        return left if left < self.size() else -1
-
-    def right_index(self, index):
-        right = (index + 1) * 2
-        return right if right < self.size() else -1
-
-    def left_child(self, key):
-        return self.key(self.left_index(self.index(key)))
-
-    def right_child(self, key):
-        return self.key(self.right_index(self.index(key)))
-
-    def valid_up(self, key):
-        return self.comp(self.parent(key), key)
-
-    def valid_down(self, key):
-        left, right = self.left_child(key), self.right_child(key)
-        return self.comp(key, left) and self.comp(key, right)
-
-    def invalid_children(self, key):
-        left, right = self.left_child(key), self.right_child(key)
-        left = None if self.comp(key, left) else left
-        right = None if self.comp(key, right) else right
-        return left, right
-
-    def preferred(self, l, r):
-        select, _ = (l, r) if self.comp(l, r) else (r, l)
-        return select
-
-    def bubble_up(self, key):
-        while not self.valid_up(key):
-            self.lift(key)
 
     @staticmethod
     def level(j):
@@ -284,7 +315,7 @@ class Heap:
         return self.subtree(0)
 
     def tree_string_size(self, node):
-        if not node:
+        if node is None:
             return 0
         left = self.tree_string_size(node.left)
         right = self.tree_string_size(node.right)
@@ -307,7 +338,7 @@ class Heap:
 
         :return:
         """
-        
+
         n = self.level(self.size() - 1)
         arr = [(None, -1)] * ((2**n) - 1)
         for h in range(1, n + 1):
@@ -357,13 +388,30 @@ class Heap:
         return str(self)
 
 
-if __name__ == constants.MAIN:
-    l = Pair.pairs([('a', 2), ('b', 7), ('c', 21), ('d', 131), ('e', 157), ('f', 137), ('g', 19), ('h', 28)])
-    heap = Heap(l, min=False)
-    heap.extend(Pair.pairs([('j', 29), ('k', 43), ('l', 72), ('m', 53)]))
-    heap.insert(Pair('n', 124))
-    heap.insert(Pair('o', 142))
-    heap.print()
-    s = heap.string()
-    heap.print_tree()
+def test_heap(heap):
+    if heap.is_empty() or heap.size() == 1:
+        return True
 
+    def comp(l, r, heap):
+        u, v = heap.value(l), heap.value(r)
+        if v is None:
+            return True
+        return u <= v if heap.min else u >= v
+
+    for key in heap.map:
+        if not comp(key, heap.left_child(key), heap) or \
+           not comp(key, heap.right_child(key), heap):
+            print(f'key = {key}')
+            return False
+    return True
+
+def generate_heap_of_size(size):
+    from constants import randrange
+    tuples = list(enumerate(map(lambda x: randrange(size), range(size))))
+    heap = Heap(Pair.pairs(tuples), min=False)
+    heap.print()
+    return heap
+
+
+if __name__ == constants.MAIN:
+    assert test_heap(generate_heap_of_size(1000))
