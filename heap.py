@@ -39,8 +39,6 @@ Therefore t ~ O(n)
 """
 
 import constants
-from constants import pp
-
 
 class Pair:
     def __init__(self, key='z', val=10):
@@ -106,24 +104,39 @@ class Heap:
     def index(self, key):
         return self.map.get(key, None)
 
+    def first_index(self):
+        return 0
+
     def last_index(self):
         return self.size() - 1
 
+    def first(self):
+        return self.pairs[self.first_index()]
+
     def last(self):
         return self.pairs[self.last_index()]
+
+    def first_key(self):
+        return self.first().key
 
     def last_key(self):
         return self.last().key
 
 
     def valid_index(self, index):
+        if index is None:
+            return False
         return 0 <= index < self.size()
 
     def left_index(self, index):
+        if index is None:
+            return None
         left = (index + 1) * 2 - 1
         return left if left < self.size() else -1
 
     def right_index(self, index):
+        if index is None:
+            return None
         right = (index + 1) * 2
         return right if right < self.size() else -1
 
@@ -135,7 +148,7 @@ class Heap:
 
 
     def value(self, key):
-        if key is None:
+        if key is None or self.pair(key) is None:
             return None
         return self.pair(key).val
 
@@ -220,18 +233,27 @@ class Heap:
         key = self.append(pair)
         self.bubble_up(key)
 
+    def extract(self):
+        return self.delete(self.first_key())
+
     def pop(self):
         last = self.pairs.pop()
         self.map.pop(last.key)
+        return last.key
 
     def delete(self, key):
         if self.index(key) is None:
             print(f'key = {key} not found')
             return
+        pair = self.pair(key)
         last_key = self.last_key()
         self.swap_keys(key, last_key)
         self.pop()
-        self.trickle_down(last_key)
+        if self.valid_down(last_key):
+            self.bubble_up(last_key)
+        else:
+            self.trickle_down(last_key)
+        return pair
 
     def update(self, key, val):
         index = self.index(key)
@@ -264,7 +286,7 @@ class Heap:
         self.swap(self.index(k), self.index(l))
 
     def pair(self, key):
-        if key is None:
+        if key is None or self.index(key) is None:
             return None
         return self.pairs[self.index(key)]
 
@@ -401,17 +423,26 @@ def test_heap(heap):
     for key in heap.map:
         if not comp(key, heap.left_child(key), heap) or \
            not comp(key, heap.right_child(key), heap):
-            print(f'key = {key}')
             return False
     return True
 
 def generate_heap_of_size(size):
     from constants import randrange
     tuples = list(enumerate(map(lambda x: randrange(size), range(size))))
-    heap = Heap(Pair.pairs(tuples), min=False)
-    heap.print()
+    heap = Heap()
+    for t in tuples:
+        heap.insert(Pair(*t))
+
+    for t in tuples[:len(tuples)//2]:
+        heap.extract()
+
     return heap
 
 
+def test_repeat_size_num(size, num):
+    for _ in range(num):
+        assert test_heap(generate_heap_of_size(size))
+
+
 if __name__ == constants.MAIN:
-    assert test_heap(generate_heap_of_size(1000))
+    test_repeat_size_num(200, 500)

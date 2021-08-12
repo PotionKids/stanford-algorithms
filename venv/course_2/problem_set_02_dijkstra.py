@@ -16,6 +16,147 @@ You should report the shortest-path distances to the following ten vertices, in 
 IMPLEMENTATION NOTES: This graph is small enough that the straightforward O(mn)O(mn) time implementation of Dijkstra's algorithm should work fine.  OPTIONAL: For those of you seeking an additional challenge, try implementing the heap-based version.  Note this requires a heap that supports deletions, and you'll probably need to maintain some kind of mapping between vertices and their positions in the heap.
 
 1 point
-
 """
+
+from heap import Heap
+from heap import Pair
+from constants import reduce
+from constants import compose
+from constants import pp
+import constants
+
+
+class Graph:
+    MAX_DISTANCE = 1_000_000
+
+    def __init__(self, filename):
+        self.graph = {}
+        with open(filename, "r") as f:
+            maps = [Graph.ver_to_adj, str.split, str.strip]
+            ver_edg_dicts = map(compose(*maps), f)
+            for ver_edges in ver_edg_dicts:
+                self.graph.update(ver_edges)
+
+    @staticmethod
+    def gen_vertices_in_graph(g):
+        for vertex in g.graph.keys():
+            yield vertex
+
+    def gen_vertices(self):
+        return Graph.gen_vertices_in_graph(self)
+
+    def gen_neighbors(self, v):
+        for vertex in self.graph[v]:
+            yield vertex
+
+    def neighbors(self, v):
+        return {vertex for vertex in self.gen_neighbors(v)}
+
+    def distance(self, s, v):
+        return self.graph.get(s).get(v, self.MAX_DISTANCE)
+
+
+    @staticmethod
+    def edge_to_wt(l, sep=','):
+        return {
+                int(edge): int(weight)
+                for edge, weight in
+                map(lambda x: x.split(sep=sep), l)
+               }
+
+    @staticmethod
+    def ver_to_adj(l, sep=','):
+        vertex, *adj_list = l
+        return {int(vertex): Graph.edge_to_wt(adj_list, sep=sep)}
+
+
+class Dijkstra:
+    """
+
+    """
+    def __init__(self, g, s=None):
+        self.graph = g
+        self.start = s
+        self.map = {s: 0} if s else {}
+        self.heap = None if s is None else self.heapify(s)
+
+    def set_start(self, s):
+        self.start = s
+        self.map = {s: 0}
+        self.heap = self.heapify(s)
+
+    def heapify(self, s):
+        return Heap(
+                     pairs=Pair.pairs
+                     (
+                         (v, g.MAX_DISTANCE) if v != s else (v, 0)
+                         for v in self.graph.gen_vertices()
+                     ),
+                     min=True
+                   )
+
+    def crossing_vertices(self, cut):
+        return reduce(
+                        set.union,
+                        map(
+                              self.graph.neighbors, cut
+                           ),
+                        set()
+                     ).difference(cut)
+
+    def neighbors(self, cut, v):
+        return self.graph.neighbors(v).intersection(cut)
+
+    def value(self, s):
+        return self.heap.value(s)
+
+    def distance(self, s, v):
+        return self.graph.distance(s, v)
+
+    def dijk_distance(self, s, v):
+        return self.value(s) + self.distance(s, v)
+
+    def nearest(self, cut, v):
+        return min(
+                    self.neighbors(cut, v),
+                    key=lambda s: self.dijk_distance(s, v)
+                  )
+
+    def cut_distance(self, cut, v):
+        return self.dijk_distance(self.nearest(cut, v), v)
+
+    def next(self, cut):
+        return min(
+                    self.crossing_vertices(cut),
+                    key=lambda v: self.cut_distance(cut, v),
+                    default=None
+                  )
+
+    # noinspection PyShadowingBuiltins
+    def calculate(self):
+        if self.start is None:
+            print('Start vertex is unset. Please set it.')
+            return
+        cut = {self.start}
+        next = self.next(cut)
+        while not self.heap.is_empty() and next:
+            self.heap.update(next, self.cut_distance(cut, next))
+            cut.add(next)
+            next = self.next(cut)
+
+
+if __name__ == constants.MAIN:
+    from time import time
+
+    g = Graph('problem_set_02_dijkstra.txt')
+    l = [7, 37, 59, 82, 99, 115, 133, 165, 188, 197]
+    start = time()
+    dijkstra = Dijkstra(g)
+    dijkstra.set_start(1)
+    dijkstra.calculate()
+    end = time()
+    print(f'time = {end - start}')
+    p = [dijkstra.heap.value(x) for x in l]
+    print(*p, sep=',')
+
 
