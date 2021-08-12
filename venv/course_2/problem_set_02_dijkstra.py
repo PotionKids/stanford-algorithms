@@ -78,12 +78,10 @@ class Dijkstra:
         self.graph = g
         self.start = s
         self.map = {s: 0} if s else {}
-        self.heap = None if s is None else self.heapify(s)
 
     def set_start(self, s):
         self.start = s
         self.map = {s: 0}
-        self.heap = self.heapify(s)
 
     def heapify(self, s):
         return Heap(
@@ -108,13 +106,13 @@ class Dijkstra:
         return self.graph.neighbors(v).intersection(cut)
 
     def value(self, s):
-        return self.heap.value(s)
+        return self.map[s]
 
     def distance(self, s, v):
         return self.graph.distance(s, v)
 
     def dijk_distance(self, s, v):
-        return self.value(s) + self.distance(s, v)
+        return self.map[s] + self.distance(s, v)
 
     def nearest(self, cut, v):
         return min(
@@ -139,8 +137,8 @@ class Dijkstra:
             return
         cut = {self.start}
         next = self.next(cut)
-        while not self.heap.is_empty() and next:
-            self.heap.update(next, self.cut_distance(cut, next))
+        while next:
+            self.map[next] = self.cut_distance(cut, next)
             cut.add(next)
             next = self.next(cut)
 
@@ -156,7 +154,7 @@ if __name__ == constants.MAIN:
     dijkstra.calculate()
     end = time()
     print(f'time = {end - start}')
-    p = [dijkstra.heap.value(x) for x in l]
+    p = [dijkstra.map[x] for x in l]
     print(*p, sep=',')
 
 
