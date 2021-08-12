@@ -2,50 +2,39 @@ import constants
 from constants import compose
 from constants import reduce
 from heap import Heap
-from math import fabs
 
 
 def median_maintenance(filename, size=10000):
-    low = Heap(min=False)
-    high = Heap(min=True)
-    meds = 0
+    l, h, m = Heap(min=False), Heap(min=True), 0
 
     with open(filename, "r") as f:
         maps = [int, str.strip]
         nums = list(map(compose(*maps), f))
 
-    for ind, num in enumerate(nums[:size]):
-        if low.peek() is None and high.peek() is None:
-            high.insert_key_val(ind, num)
-        elif low.peek() is None:
-            if num <= high.peek().val:
-                low.insert_key_val(ind, num)
-            else:
-                high.insert_key_val(ind, num)
+    for i, n in enumerate(nums[:size]):
+        if l.peek() is None and h.peek() is None:
+            h.push(i, n)
+        elif l.peek() is None:
+            l.push(i, n) if n <= h.peek() else h.push(i, n)
 
-        elif num <= low.peek().val:
-            low.insert_key_val(ind, num)
-        elif num >= high.peek().val:
-            high.insert_key_val(ind, num)
+        elif n <= l.peek():
+            l.push(i, n)
+        elif n >= h.peek():
+            h.push(i, n)
         else:
-            if low.size() > high.size():
-                low.insert_key_val(ind, num)
-            else:
-                high.insert_key_val(ind, num)
+            l.push(i, n) if l.size() > h.size() else h.push(i, n)
 
-        if high.size() == low.size() + 2:
-            low.insert(high.extract())
-        elif low.size() == high.size() + 2:
-            high.insert(low.extract())
+        if h.size() == l.size() + 2:
+            l.insert(h.extract())
+        elif l.size() == h.size() + 2:
+            h.insert(l.extract())
 
-        if (ind + 1) % 2 == 0:
-            meds += low.peek().val
+        if (i + 1) % 2 == 0:
+            m += l.peek()
         else:
-            l, h = low.peek(), high.peek()
-            ls, hs = low.size(), high.size()
-            meds += l.val if ls > hs else h.val
+            m += l.peek() if l.size() > h.size() else h.peek()
 
-    return meds % 10000
+    return m % 10000
 
 
 if __name__ == constants.MAIN:
@@ -55,3 +44,4 @@ if __name__ == constants.MAIN:
     meds = median_maintenance('problem_set_03_median.txt')
     end = time()
     print(f'time = {end - start}')
+    print(meds)

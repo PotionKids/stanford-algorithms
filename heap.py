@@ -234,16 +234,17 @@ class Heap:
         key = self.append(pair)
         self.bubble_up(key)
 
-    def insert_key_val(self, key, val):
+    def push(self, key, val):
         self.insert(Pair(key, val))
 
-    def insert_key_vals(self, tuples):
+    def push_many(self, tuples):
         self.extend(Pair.pairs(tuples))
 
     def peek(self):
-        if self.is_empty():
-            return None
-        return deepcopy(self.first())
+        return None if self.is_empty() else deepcopy(self.first()).val
+
+    def peek_pair(self):
+        return None if self.is_empty() else deepcopy(self.first())
 
     def extract(self):
         return self.delete(self.first_key())
