@@ -39,6 +39,7 @@ Therefore t ~ O(n)
 """
 
 import constants
+from constants import deepcopy
 
 class Pair:
     def __init__(self, key='z', val=10):
@@ -232,6 +233,17 @@ class Heap:
     def insert(self, pair):
         key = self.append(pair)
         self.bubble_up(key)
+
+    def insert_key_val(self, key, val):
+        self.insert(Pair(key, val))
+
+    def insert_key_vals(self, tuples):
+        self.extend(Pair.pairs(tuples))
+
+    def peek(self):
+        if self.is_empty():
+            return None
+        return deepcopy(self.first())
 
     def extract(self):
         return self.delete(self.first_key())
